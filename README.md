@@ -90,3 +90,9 @@ With a subscription, your version history is backed up to the cloud and accessib
 
 - macOS 10.14 or later
 - Rhino 3D (for editing `.3dm` files)
+
+---
+
+## AI Disclosure
+
+I exclusively used Claude Code with the compound-engineering and claude-mem plugins to write the codebase, and used Warp to perform Git commands.
