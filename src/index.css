@@ -1,0 +1,163 @@
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-variable.woff2') format('woff2');
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light theme — warm neutral */
+    --background: 30 3% 97%;
+    --foreground: 30 3% 8%;
+
+    --card: 30 3% 99%;
+    --card-foreground: 30 3% 8%;
+
+    --popover: 30 3% 99%;
+    --popover-foreground: 30 3% 8%;
+
+    --primary: 30 3% 10%;
+    --primary-foreground: 30 3% 97%;
+
+    --secondary: 30 3% 92%;
+    --secondary-foreground: 30 3% 15%;
+
+    --muted: 30 3% 92%;
+    --muted-foreground: 30 3% 40%;
+
+    --accent: 30 3% 92%;
+    --accent-foreground: 30 3% 10%;
+
+    --destructive: 0 40% 45%;
+    --destructive-foreground: 0 40% 95%;
+
+    --border: 30 3% 85%;
+    --input: 30 3% 85%;
+    --ring: 30 3% 30%;
+
+    --radius: 0.5rem;
+
+    /* Custom tokens */
+    --panel-bg: 30 3% 99%;
+    --panel-border: 30 3% 85%;
+    --panel-header: 30 3% 95%;
+
+    --success: 145 30% 40%;
+    --success-foreground: 145 30% 95%;
+    --warning: 35 45% 42%;
+    --warning-foreground: 35 45% 95%;
+    --info: 210 30% 42%;
+    --info-foreground: 210 30% 95%;
+
+    --sidebar-background: 30 3% 97%;
+    --sidebar-foreground: 30 3% 8%;
+    --sidebar-primary: 30 3% 10%;
+    --sidebar-primary-foreground: 30 3% 97%;
+    --sidebar-accent: 30 3% 92%;
+    --sidebar-accent-foreground: 30 3% 10%;
+    --sidebar-border: 30 3% 85%;
+    --sidebar-ring: 30 3% 30%;
+  }
+
+  .dark {
+    /* Dark theme — warm neutral */
+    --background: 30 3% 4%;
+    --foreground: 30 3% 96%;
+
+    --card: 30 3% 6%;
+    --card-foreground: 30 3% 96%;
+
+    --popover: 30 3% 6%;
+    --popover-foreground: 30 3% 96%;
+
+    --primary: 30 3% 96%;
+    --primary-foreground: 30 3% 4%;
+
+    --secondary: 30 3% 12%;
+    --secondary-foreground: 30 3% 96%;
+
+    --muted: 30 3% 12%;
+    --muted-foreground: 30 3% 72%;
+
+    --accent: 30 3% 96%;
+    --accent-foreground: 30 3% 4%;
+
+    --destructive: 0 40% 55%;
+    --destructive-foreground: 0 40% 95%;
+
+    --border: 30 3% 20%;
+    --input: 30 3% 20%;
+    --ring: 30 3% 96%;
+
+    --panel-bg: 30 3% 4%;
+    --panel-border: 30 3% 20%;
+    --panel-header: 30 3% 7%;
+
+    --success: 145 30% 55%;
+    --success-foreground: 145 30% 95%;
+    --warning: 35 45% 55%;
+    --warning-foreground: 35 45% 95%;
+    --info: 210 30% 58%;
+    --info-foreground: 210 30% 95%;
+
+    --sidebar-background: 30 3% 4%;
+    --sidebar-foreground: 30 3% 96%;
+    --sidebar-primary: 30 3% 96%;
+    --sidebar-primary-foreground: 30 3% 4%;
+    --sidebar-accent: 30 3% 12%;
+    --sidebar-accent-foreground: 30 3% 96%;
+    --sidebar-border: 30 3% 20%;
+    --sidebar-ring: 30 3% 96%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  /* Custom scrollbar for macOS feel */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+}
+
+@layer utilities {
+  .panel-glass {
+    @apply bg-[hsl(var(--panel-bg))] border border-[hsl(var(--panel-border))] backdrop-blur-xl;
+  }
+
+  .panel-header {
+    @apply bg-[hsl(var(--panel-header))] border-b border-[hsl(var(--panel-border))] px-4 py-3;
+  }
+
+  .text-code {
+    @apply font-mono text-sm;
+  }
+
+}

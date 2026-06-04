@@ -1,0 +1,47 @@
+# Homebrew Cask formula for 0studio
+# Copy this to your homebrew-0studio tap repository as Casks/0studio.rb
+# Replace YOUR_GITHUB_USERNAME and SHA256 values
+
+cask "0studio" do
+  version "1.0.0"
+
+  on_arm do
+    sha256 "REPLACE_WITH_ARM64_SHA256"
+    url "https://github.com/YOUR_GITHUB_USERNAME/0studio/releases/download/v#{version}/0studio-#{version}-arm64-mac.zip"
+  end
+  on_intel do
+    sha256 "REPLACE_WITH_X64_SHA256"
+    url "https://github.com/YOUR_GITHUB_USERNAME/0studio/releases/download/v#{version}/0studio-#{version}-mac.zip"
+  end
+
+  name "0studio"
+  desc "Desktop app for 3D model version control with Rhino3D files"
+  homepage "https://github.com/YOUR_GITHUB_USERNAME/0studio"
+
+  livecheck do
+    url :url
+    strategy :github_latest
+  end
+
+  auto_updates true
+  depends_on macos: ">= :catalina"
+
+  app "0studio.app"
+
+  postflight do
+    # Remove quarantine attribute for unsigned apps
+    system_command "/usr/bin/xattr",
+                   args: ["-d", "com.apple.quarantine", "#{appdir}/0studio.app"],
+                   sudo: false
+  end
+
+  zap trash: [
+    "~/Library/Application Support/0studio",
+    "~/Library/Application Support/rhino-studio",
+    "~/Library/Caches/com.rhinostudio.app",
+    "~/Library/Caches/com.rhinostudio.app.ShipIt",
+    "~/Library/Preferences/com.rhinostudio.app.plist",
+    "~/Library/Saved Application State/com.rhinostudio.app.savedState",
+    "~/.0studio",
+  ]
+end

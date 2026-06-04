@@ -1,0 +1,108 @@
+name: Tester Build
+
+# Phase 1 §1d deliverable: produces tester-ready artifacts on demand
+# without bumping a version, creating a tag, or publishing a Release.
+# Use this for windows-tester rounds (see docs/handoffs/) where each
+# build is throwaway and tester just needs the latest .exe.
+#
+# For real version-tagged releases, keep using release.yml on tag push.
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build (default: current branch)'
+        required: false
+        default: ''
+      platforms:
+        description: 'Which platforms to build'
+        required: false
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - windows-only
+          - macos-only
+
+jobs:
+  build-windows:
+    if: ${{ github.event.inputs.platforms != 'macos-only' }}
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Electron app (Windows)
+        run: npm run build && npm run build:electron && npx electron-builder --win --publish=never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_PRO_PRICE_ID: ${{ secrets.VITE_STRIPE_PRO_PRICE_ID }}
+          VITE_STRIPE_ENTERPRISE_PRICE_ID: ${{ secrets.VITE_STRIPE_ENTERPRISE_PRICE_ID }}
+
+      - name: Verify Windows artifact (rhino3dm + web-ifc WASM blobs present)
+        shell: bash
+        run: |
+          exe=$(ls release/*Setup*.exe | head -1)
+          echo "Verifying: $exe"
+          node scripts/verify-windows-artifact.cjs "$exe"
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tester-windows-${{ github.sha }}
+          path: |
+            release/*.exe
+          retention-days: 14
+
+  build-macos:
+    if: ${{ github.event.inputs.platforms != 'windows-only' }}
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Electron app (macOS)
+        run: npm run build:all
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_PRO_PRICE_ID: ${{ secrets.VITE_STRIPE_PRO_PRICE_ID }}
+          VITE_STRIPE_ENTERPRISE_PRICE_ID: ${{ secrets.VITE_STRIPE_ENTERPRISE_PRICE_ID }}
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tester-macos-${{ github.sha }}
+          path: |
+            release/*.dmg
+            release/*.zip
+          retention-days: 14

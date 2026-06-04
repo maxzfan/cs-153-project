@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Presence Simulation Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e5e5e5; height: 100vh; display: flex; flex-direction: column; }
+
+    /* Setup bar */
+    #setup { padding: 12px 16px; background: #171717; border-bottom: 1px solid #262626; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    #setup input { background: #262626; border: 1px solid #404040; color: #e5e5e5; padding: 6px 10px; border-radius: 4px; font-size: 13px; }
+    #setup input::placeholder { color: #737373; }
+    #setup button { background: #3b82f6; color: white; border: none; padding: 6px 14px; border-radius: 4px; font-size: 13px; cursor: pointer; }
+    #setup button:hover { background: #2563eb; }
+    #setup button:disabled { background: #404040; cursor: not-allowed; }
+    #setup .status { font-size: 12px; color: #a3a3a3; }
+    #setup .error { color: #ef4444; font-size: 12px; }
+
+    /* Three-panel layout */
+    #panels { display: flex; flex: 1; overflow: hidden; }
+    .panel { flex: 1; border-right: 1px solid #262626; display: flex; flex-direction: column; overflow: hidden; }
+    .panel:last-child { border-right: none; }
+    .panel-header { padding: 10px 14px; background: #171717; border-bottom: 1px solid #262626; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #a3a3a3; }
+    .panel-body { flex: 1; overflow-y: auto; padding: 8px; }
+
+    /* Roster */
+    .user-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .user-row:hover { background: #1a1a1a; }
+    .user-row.active { background: #1c1c1c; }
+    .avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: white; flex-shrink: 0; }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-weight: 500; }
+    .user-detail { font-size: 11px; color: #737373; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .toggle { width: 36px; height: 20px; border-radius: 10px; background: #404040; position: relative; cursor: pointer; flex-shrink: 0; transition: background 0.2s; }
+    .toggle.on { background: #22c55e; }
+    .toggle::after { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%; background: white; top: 2px; left: 2px; transition: transform 0.2s; }
+    .toggle.on::after { transform: translateX(16px); }
+    .user-controls { padding: 6px 8px 10px 40px; display: none; }
+    .user-controls.visible { display: flex; gap: 8px; flex-direction: column; }
+    .user-controls select, .user-controls input { background: #262626; border: 1px solid #404040; color: #e5e5e5; padding: 4px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
+
+    /* Scenarios */
+    .scenario-card { background: #171717; border: 1px solid #262626; border-radius: 6px; padding: 12px; margin-bottom: 8px; }
+    .scenario-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .scenario-desc { font-size: 12px; color: #a3a3a3; margin-bottom: 8px; }
+    .scenario-btn { background: #3b82f6; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+    .scenario-btn:hover { background: #2563eb; }
+    .scenario-btn:disabled { background: #404040; cursor: not-allowed; }
+    .scenario-btn.stop { background: #ef4444; }
+    .scenario-btn.stop:hover { background: #dc2626; }
+    .progress-bar { height: 3px; background: #262626; border-radius: 2px; margin-top: 8px; overflow: hidden; display: none; }
+    .progress-bar.visible { display: block; }
+    .progress-fill { height: 100%; background: #3b82f6; transition: width 0.5s; }
+
+    /* Event log */
+    .log-entry { font-size: 12px; font-family: 'SF Mono', 'Fira Code', monospace; padding: 2px 6px; border-bottom: 1px solid #1a1a1a; }
+    .log-time { color: #737373; margin-right: 8px; }
+    .log-clear { font-size: 11px; background: none; border: 1px solid #404040; color: #a3a3a3; padding: 3px 8px; border-radius: 3px; cursor: pointer; float: right; }
+    .log-clear:hover { background: #262626; }
+
+    /* Disabled state before connection */
+    #panels.disabled { opacity: 0.4; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <div id="setup">
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password" />
+    <button id="signInBtn">Sign In</button>
+    <input id="projectId" type="text" placeholder="Cloud Project ID" disabled />
+    <button id="connectBtn" disabled>Connect</button>
+    <span id="setupStatus" class="status">Not signed in</span>
+  </div>
+
+  <div id="panels" class="disabled">
+    <div class="panel" id="rosterPanel">
+      <div class="panel-header">User Roster (0 / 20 active)</div>
+      <div class="panel-body" id="rosterBody"></div>
+    </div>
+    <div class="panel" id="scenarioPanel">
+      <div class="panel-header">Scenarios</div>
+      <div class="panel-body" id="scenarioBody"></div>
+    </div>
+    <div class="panel" id="logPanel">
+      <div class="panel-header">Event Log <button class="log-clear" id="logClear">Clear</button></div>
+      <div class="panel-body" id="logBody"></div>
+    </div>
+  </div>
+
+  <script type="module" src="./presence-sim.ts"></script>
+</body>
+</html>
